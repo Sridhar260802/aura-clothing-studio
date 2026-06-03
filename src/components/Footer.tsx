@@ -27,8 +27,6 @@ export default function Footer() {
             <ul className="space-y-3">
               {[
                 { href: "/products", label: "Shop All" },
-                { href: "/products?category=Blazers", label: "Blazers" },
-                { href: "/products?category=Shirts", label: "Shirts" },
                 { href: "/products?category=Ethnic+Wear", label: "Ethnic Wear" },
                 { href: "/track-order", label: "Track Order" },
               ].map((link) => (
