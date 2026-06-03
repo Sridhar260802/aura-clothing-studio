@@ -50,11 +50,11 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center gap-2 font-body text-sm text-white/60">
                 <Phone size={14} className="text-aura-400" />
-                +91 98765 43210
+                +91 6374661885
               </li>
               <li className="flex items-center gap-2 font-body text-sm text-white/60">
                 <Mail size={14} className="text-aura-400" />
-                hello@auraclothing.in
+                auratheclothingstudio@gmail.com
               </li>
               <li className="flex items-start gap-2 font-body text-sm text-white/60">
                 <MapPin size={14} className="text-aura-400 mt-0.5" />
@@ -68,7 +68,9 @@ export default function Footer() {
             <h4 className="font-display text-sm tracking-widest uppercase mb-4">Follow Us</h4>
             <div className="flex gap-3">
               <a
-                href="#"
+                href="https://www.instagram.com/aura_theclothingstudio?igsh=cWNqbnJrYmVwM3Zz"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-aura-600 transition-colors"
                 aria-label="Instagram"
               >

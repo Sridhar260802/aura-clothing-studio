@@ -76,13 +76,13 @@ export const ORDER_STATUSES: OrderStatus[] = [
 
 export const CATEGORIES = [
   "All",
-  "Blazers",
-  "Shirts",
-  "Trousers",
-  "T-Shirts",
-  "Jackets",
-  "Sweaters",
-  "Ethnic Wear",
+  "Kurta Sets",
+  "CO-ORDS",
+  "PARTY WEAR",
+  "FESTIVE GOWNS",
+  "SALWAR SUITS",
+  "CASUAL MAXIS",
+  "PEPLUM TOPS",
 ];
 
 export const SIZES = ["S", "M", "L", "XL", "XXL"];
