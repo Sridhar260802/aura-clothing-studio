@@ -44,4 +44,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...productUrls,
   ];
+  
 }
+console.log("DATABASE_URL exists:", !!process.env.DATABASE_URL);
+console.log(
+  "Starts with postgresql:",
+  process.env.DATABASE_URL?.startsWith("postgresql://")
+);
