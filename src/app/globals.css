@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@200;300;400;500;600;700&display=swap');
+
+:root {
+  --font-display: 'Cormorant Garamond', serif;
+  --font-body: 'Outfit', sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply font-body bg-white dark:bg-charcoal text-charcoal dark:text-white;
+  }
+
+  ::selection {
+    @apply bg-aura-200 dark:bg-aura-800 text-charcoal dark:text-white;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-aura-300 dark:bg-aura-800 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-aura-400 dark:bg-aura-700;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-8 py-3 bg-aura-600 hover:bg-aura-700 text-white font-body text-sm uppercase tracking-widest rounded-full transition-all duration-300 hover:shadow-lg hover:shadow-aura-600/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center px-8 py-3 border-2 border-charcoal dark:border-white text-charcoal dark:text-white font-body text-sm uppercase tracking-widest rounded-full transition-all duration-300 hover:bg-charcoal hover:text-white dark:hover:bg-white dark:hover:text-charcoal active:scale-[0.98];
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center px-6 py-2 text-charcoal dark:text-white font-body text-sm uppercase tracking-widest transition-all duration-300 hover:text-aura-600 dark:hover:text-aura-400;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 bg-smoke dark:bg-charcoal/60 border border-aura-200 dark:border-aura-800 rounded-lg font-body text-sm text-charcoal dark:text-white placeholder:text-charcoal/40 dark:placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-aura-500/30 focus:border-aura-500 transition-all;
+  }
+
+  .section-title {
+    @apply font-display text-3xl sm:text-4xl lg:text-5xl text-charcoal dark:text-white tracking-wide;
+  }
+
+  .section-subtitle {
+    @apply font-body text-sm uppercase tracking-[0.2em] text-aura-500 dark:text-aura-400;
+  }
+
+  .card {
+    @apply bg-white dark:bg-charcoal/60 border border-aura-100 dark:border-aura-900/30 rounded-xl p-6 shadow-sm;
+  }
+
+  /* Grain texture overlay */
+  .grain::after {
+    content: "";
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    right: -50%;
+    bottom: -50%;
+    width: 200%;
+    height: 200%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+}
