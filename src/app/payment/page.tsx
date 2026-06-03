@@ -74,7 +74,22 @@ export default function PaymentPage() {
         method: "POST",
         body: formData,
       });
-      const uploadData = await uploadRes.json();
+
+      // Safely parse — server may return HTML/plain-text on errors (e.g. 413, 500)
+      const uploadRawText = await uploadRes.text();
+      let uploadData: { url?: string; error?: string } = {};
+      try {
+        uploadData = JSON.parse(uploadRawText);
+      } catch {
+        if (uploadRes.status === 413) {
+          throw new Error("Image is too large. Please upload a smaller screenshot (under 5MB).");
+        }
+        throw new Error(
+          uploadRawText.length < 200
+            ? uploadRawText
+            : `Upload failed (${uploadRes.status}). Please try again.`
+        );
+      }
 
       if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed");
 
@@ -101,10 +116,18 @@ export default function PaymentPage() {
         }),
       });
 
-      const orderData = await orderRes.json();
+      // Safely parse order response too
+      const orderRawText = await orderRes.text();
+      let orderData: { orderNumber?: string; error?: string } = {};
+      try {
+        orderData = JSON.parse(orderRawText);
+      } catch {
+        throw new Error(`Order failed (${orderRes.status}). Please try again.`);
+      }
+
       if (!orderRes.ok) throw new Error(orderData.error || "Order failed");
 
-      setOrderNumber(orderData.orderNumber);
+      setOrderNumber(orderData.orderNumber!);
       setOrderPlaced(true);
       clearCart();
       sessionStorage.removeItem("aura-checkout");
