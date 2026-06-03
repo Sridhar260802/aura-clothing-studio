@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
-import { Plus, Edit2, Trash2, X, Loader2, Star } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Edit2, Trash2, X, Loader2, Star, Upload, ImagePlus, XCircle } from "lucide-react";
 import { formatPrice, slugify } from "@/lib/utils";
 import { CATEGORIES, SIZES } from "@/types";
 import type { Product, SizeStock } from "@/types";
@@ -13,6 +13,10 @@ export default function AdminProductsPage() {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [saving, setSaving] = useState(false);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     name: "", description: "", price: "", costPrice: "", category: "Shirts",
@@ -34,6 +38,8 @@ export default function AdminProductsPage() {
       name: "", description: "", price: "", costPrice: "", category: "Shirts",
       stock: "", featured: false, sizes: SIZES.map((s) => ({ size: s, stock: 0 })),
     });
+    setImagePreviews([]);
+    setImageFiles([]);
     setShowModal(true);
   };
 
@@ -52,12 +58,59 @@ export default function AdminProductsPage() {
         return { size: s, stock: existing?.stock || 0 };
       }),
     });
+    setImageFiles([]);
+    setImagePreviews(product.images || []);
     setShowModal(true);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const newFiles = [...imageFiles, ...files];
+    setImageFiles(newFiles);
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setImagePreviews((prev) => [...prev, ev.target?.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+    // Reset input so same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeImage = (index: number) => {
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+    // Only remove from imageFiles if it's a new file (not an existing URL)
+    const existingCount = (editing?.images || []).length;
+    if (index >= existingCount) {
+      const fileIndex = index - existingCount;
+      setImageFiles((prev) => prev.filter((_, i) => i !== fileIndex));
+    }
+  };
+
+  const uploadImages = async (): Promise<string[]> => {
+    if (!imageFiles.length) return editing?.images || [];
+    setUploadingImages(true);
+    try {
+      const formData = new FormData();
+      imageFiles.forEach((file) => formData.append("images", file));
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      const existingUrls = editing?.images || [];
+      return [...existingUrls, ...(data.urls || [])];
+    } catch (err) {
+      console.error("Image upload failed:", err);
+      return editing?.images || [];
+    } finally {
+      setUploadingImages(false);
+    }
   };
 
   const handleSave = async () => {
     setSaving(true);
     try {
+      const uploadedImageUrls = await uploadImages();
       const totalStock = form.sizes.reduce((s, sz) => s + sz.stock, 0);
       const body = {
         name: form.name,
@@ -69,7 +122,7 @@ export default function AdminProductsPage() {
         stock: totalStock.toString(),
         featured: form.featured,
         sizes: form.sizes,
-        images: editing?.images || [],
+        images: uploadedImageUrls,
       };
 
       if (editing) {
@@ -145,8 +198,12 @@ export default function AdminProductsPage() {
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-aura-100 to-aura-200 dark:from-aura-900/40 dark:to-aura-800/20 flex items-center justify-center shrink-0">
-                        <span className="font-display text-sm text-aura-600 dark:text-aura-400">{product.name.charAt(0)}</span>
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-aura-100 to-aura-200 dark:from-aura-900/40 dark:to-aura-800/20 flex items-center justify-center shrink-0 overflow-hidden">
+                        {product.images?.[0] ? (
+                          <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="font-display text-sm text-aura-600 dark:text-aura-400">{product.name.charAt(0)}</span>
+                        )}
                       </div>
                       <div className="min-w-0">
                         <p className="font-body text-sm font-medium line-clamp-1 flex items-center gap-1">
@@ -240,6 +297,71 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
+              {/* Image Upload */}
+              <div>
+                <label className="font-body text-xs text-charcoal/60 dark:text-white/60 uppercase tracking-wider mb-2 block">
+                  Product Images
+                </label>
+                <div className="space-y-3">
+                  {/* Image Previews */}
+                  {imagePreviews.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2">
+                      <AnimatePresence>
+                        {imagePreviews.map((src, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="relative group aspect-square rounded-lg overflow-hidden border border-aura-100 dark:border-aura-900/30"
+                          >
+                            <img
+                              src={src}
+                              alt={`Product image ${i + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              onClick={() => removeImage(i)}
+                              className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 rounded-full p-0.5 text-white hover:bg-red-500"
+                            >
+                              <XCircle size={14} />
+                            </button>
+                            {i === 0 && (
+                              <span className="absolute bottom-1 left-1 bg-aura-600 text-white text-[9px] font-body px-1.5 py-0.5 rounded-full">
+                                Main
+                              </span>
+                            )}
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  )}
+
+                  {/* Upload Button */}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full border-2 border-dashed border-aura-200 dark:border-aura-800 rounded-lg py-4 flex flex-col items-center gap-1.5 hover:border-aura-400 dark:hover:border-aura-600 hover:bg-aura-50 dark:hover:bg-aura-900/10 transition-colors cursor-pointer"
+                  >
+                    <ImagePlus size={20} className="text-aura-400" />
+                    <span className="font-body text-sm text-charcoal/50 dark:text-white/50">
+                      {imagePreviews.length > 0 ? "Add more images" : "Upload product images"}
+                    </span>
+                    <span className="font-body text-xs text-charcoal/30 dark:text-white/30">
+                      PNG, JPG, WEBP up to 10MB each
+                    </span>
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    multiple
+                    className="hidden"
+                    onChange={handleImageSelect}
+                  />
+                </div>
+              </div>
+
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -252,8 +374,12 @@ export default function AdminProductsPage() {
 
               <div className="flex gap-3 pt-2">
                 <button onClick={() => setShowModal(false)} className="btn-outline flex-1 !py-2.5">Cancel</button>
-                <button onClick={handleSave} disabled={saving || !form.name || !form.price} className="btn-primary flex-1 !py-2.5">
-                  {saving ? <Loader2 size={16} className="animate-spin" /> : editing ? "Save Changes" : "Add Product"}
+                <button onClick={handleSave} disabled={saving || uploadingImages || !form.name || !form.price} className="btn-primary flex-1 !py-2.5">
+                  {uploadingImages ? (
+                    <><Loader2 size={16} className="animate-spin" /> Uploading...</>
+                  ) : saving ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : editing ? "Save Changes" : "Add Product"}
                 </button>
               </div>
             </div>

@@ -228,7 +228,7 @@ export default function PaymentPage() {
                       UPI ID
                     </p>
                     <p className="font-body text-sm font-medium text-charcoal dark:text-white">
-                      {process.env.NEXT_PUBLIC_UPI_ID || "yourupi@bank"}
+                      {process.env.NEXT_PUBLIC_UPI_ID || "9345632981@upi"}
                     </p>
                   </div>
 
